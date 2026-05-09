@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "googleapis": "^148.0.0"
   }
 }

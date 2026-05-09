@@ -1,6 +1,6 @@
 # WordPress MCP for Cursor
 
-Servidor **MCP** (Model Context Protocol) que conecta **Cursor** con la **REST API de WordPress**. Permite al asistente listar, crear y borrar entradas mediante herramientas estándar del protocolo.
+Servidor **MCP** (Model Context Protocol) que conecta **Cursor** con la **REST API de WordPress**. Permite al asistente listar, crear y borrar entradas mediante herramientas estándar del protocolo. Opcionalmente expone lectura de **Google Search Console** (top páginas y consultas) si configuras las variables `GSC_*` en `.env`.
 
 **Caso de estudio** (playbook + scripts de limpieza de inyección / SEO spam): [github.com/Devpwilmer/caso-estudio-wordpress-mcp-cursor](https://github.com/Devpwilmer/caso-estudio-wordpress-mcp-cursor)
 
@@ -20,7 +20,7 @@ npm install
 cp .env.example .env
 ```
 
-Edita `.env` con la URL de tu sitio (sin barra final), usuario y contraseña de aplicación.
+Edita `.env` con la URL de tu sitio (sin barra final), usuario y contraseña de aplicación. Para GSC, añade `GSC_SITE_URL` y autenticación OAuth de usuario o JSON de cuenta de servicio con acceso a la propiedad (ver `.env.example`).
 
 ## Uso en Cursor
 
@@ -62,6 +62,8 @@ El servidor habla por **stdio** (salida estándar), igual que cuando Cursor lo l
 | `list_posts`   | Lista entradas recientes. Opcional: `per_page` (número). |
 | `create_post`  | Crea una entrada: `title`, `content`, opcional `status` (`draft` o `publish`). |
 | `delete_post`  | Borra o envía a la papelera: `id`, opcional `force` (boolean). |
+| `gsc_top_pages` | Top URLs desde Search Console: `start_date`, `end_date` (YYYY-MM-DD), opcional `row_limit`. Requiere `GSC_*`. |
+| `gsc_top_queries` | Top consultas: mismos campos; opcional `page` para filtrar por URL. Requiere `GSC_*`. |
 
 ## WordPress
 
