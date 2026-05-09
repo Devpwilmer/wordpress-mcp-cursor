@@ -1,6 +1,8 @@
 # WordPress MCP + Cursor: caso práctico — limpieza de enlaces spam
 
-Guía en español para detectar, mapear y eliminar enlaces inyectados (típicamente apuestas u ofertas no deseadas) en WordPress, incluyendo páginas construidas con Elementor. **No incluye dominios reales:** adapta URLs y marcadores a tu propio incidente.
+**Qué es esto:** un **caso de estudio documentado** que puedes **reutilizar tal cual** en **otro dominio o proyecto similar** (mismo patrón de ataque: enlaces inyectados, constructor tipo Elementor, caché). No sustituye auditoría legal ni forense; sí te da un **orden de trabajo** y scripts listos.
+
+Guía en español para detectar, mapear y eliminar enlaces inyectados (típicamente apuestas u ofertas no deseadas) en WordPress, incluyendo páginas construidas con Elementor. **No incluye dominios reales del caso original:** tú pones **tu** URL y credenciales en `.env` (ver `.env.example`).
 
 ## Para quién es esta guía
 
@@ -247,6 +249,68 @@ node_modules/
 
 ## 7) Estructura sugerida del repositorio
 
-- `README.md` — MCP y configuración.
-- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — este caso práctico.
+- `README.md` — MCP, resumen del caso y cómo replicar en otro dominio.
+- `.env.example` — plantilla de variables (copiar a `.env`, no subir `.env`).
+- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — caso de estudio + flujo detallado.
 - Scripts `*.mjs` — escaneo, remediación y validación.
+
+---
+
+## 8. Plantilla: replicar este flujo en tu propio dominio
+
+Este playbook documenta un **caso real**, pero el repo está pensado como **kit reutilizable**: mismo procedimiento para cualquier WordPress afectado por un patrón parecido (enlaces inyectados, SEO spam, Elementor).
+
+### Checklist antes de tocar nada
+
+- [ ] **Node.js 18+** instalado (`node -v`).
+- [ ] **Copia de seguridad** del sitio (archivos + base de datos) o snapshot del hosting.
+- [ ] En WordPress: **REST API** accesible (sin bloqueo por firewall/plugin agresivo).
+- [ ] Usuario con permisos para **editar entradas y páginas** (y meta si el hosting lo permite vía REST).
+- [ ] **Contraseña de aplicación** creada en *Usuarios → Tu perfil → Contraseñas de aplicación* (no uses la contraseña de acceso normal en scripts).
+
+### Puesta en marcha en tu máquina
+
+1. `git clone …` y `cd` al proyecto.
+2. `npm install`
+3. `npm install cheerio` (necesario para los scripts de limpieza HTML).
+4. Copia `.env.example` a `.env`.
+5. Rellena al menos:
+   - `WP_BASE_URL` = `https://tu-dominio.com` (sin `/` final).
+   - `WP_USERNAME` / `WP_APP_PASSWORD`.
+   - `WP_SITE_HOST` = el host que usas en tus URLs propias (ej. `tu-dominio.com`), para la lista blanca en scripts.
+
+### Orden recomendado (igual que el caso de estudio)
+
+| Orden | Comando | Qué hace |
+|------|---------|----------|
+| 1 | `node scan-malicious-links.mjs` | Solo lectura: mapa de enlaces sospechosos en home + posts + páginas. |
+| 2 | `node strip-spam-links-pages.mjs` | Escribe: limpia contenido de páginas según heurísticas. |
+| 3 | `node elementor-strip-spam.mjs` | Escribe: limpia JSON de Elementor si aplica. |
+| 4 | `node strip-rendered-to-post-content.mjs` | Escribe: corrige cuando el HTML público y el guardado no coinciden. |
+| 5 | `node scan-malicious-links.mjs` | Valida de nuevo. |
+| 6 | Purgar **caché** (plugin, servidor, CDN) | Alinea la web pública con lo guardado. |
+
+Entre pasos 2–4, puedes repetir el escaneo si quieres ver la reducción progresiva.
+
+### Ajustar a **tu** tipo de spam
+
+Los scripts incluyen patrones orientados a **apuestas / casino / afiliación**. Si tu incidente es otro (farmacias, adultos, phishing, etc.):
+
+- Amplía las expresiones en `isSpamHref()` dentro de los `.mjs` de limpieza, **o**
+- Mantén una lista local (archivo ignorado por Git) y carga patrones desde ahí si prefieres no versionarlos.
+
+Así el mismo flujo sirve para **proyectos similares** sin ceñirse al caso original.
+
+### Limitaciones y avisos
+
+- Algunos hostings **no permiten** actualizar `meta._elementor_data` vía REST: entonces habrá que editar en Elementor o en base de datos a mano.
+- Los scripts **no limpian menús, widgets ni tema**: revisa aparte si el spam aparece ahí.
+- Tras limpiar, **rota contraseñas** y revisa usuarios/plugins si sospechas de acceso indebido.
+
+### Cómo saber que “tu dominio” quedó bien
+
+- `homepage_suspicious`, `posts_with_spam_links` y `pages_with_spam_links` **vacíos** en la salida de `scan-malicious-links.mjs`.
+- Vista manual de la portada y de las páginas que antes fallaban.
+- Sin rastro de tus marcadores de prueba (`SPAM_PROBE`, etc.) en el HTML público.
+
+Con esto, cualquier persona que baje el repo puede **optimizar o repetir el procedimiento** en un dominio concreto siguiendo la misma lógica del caso de estudio.

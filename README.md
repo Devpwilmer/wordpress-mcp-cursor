@@ -1,6 +1,18 @@
 # WordPress MCP for Cursor
 
-Servidor MCP que expone herramientas contra la **REST API de WordPress** (`list_posts`, `create_post`, `delete_post`). Incluye además un **caso práctico** para compartir ([playbook en español](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md)) sobre limpieza de contenido inyectado; los scripts de limpieza son opcionales y se ejecutan aparte con Node.
+Servidor MCP que expone herramientas contra la **REST API de WordPress** (`list_posts`, `create_post`, `delete_post`). Incluye además un **caso de estudio reutilizable** ([playbook en español](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md)) sobre limpieza de contenido inyectado; los scripts de limpieza son opcionales y se ejecutan aparte con Node.
+
+Cualquiera que clone el repo puede **aplicar el mismo método a su propio dominio**: configuración mínima en `.env`, escaneo sin escribir nada, y luego limpieza por fases con validación (ver [§8 al final del playbook](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md#8-plantilla-replicar-este-flujo-en-tu-propio-dominio)).
+
+## Replicar en tu dominio (resumen)
+
+1. Clona el repositorio e instala: `npm install` y, para los scripts, `npm install cheerio`.
+2. Copia `.env.example` a `.env` y completa `WP_BASE_URL`, `WP_USERNAME`, `WP_APP_PASSWORD` (contraseña de aplicación desde el perfil de WordPress).
+3. Añade `WP_SITE_HOST` con el host de **tu** web (sin `https://`) para que la limpieza no confunda tus enlaces internos con spam.
+4. Haz **copia de seguridad** del sitio antes de ejecutar scripts que modifican páginas.
+5. Ejecuta en orden: `node scan-malicious-links.mjs` → revisa el informe → scripts de limpieza del playbook → vuelve a escanear → purga caché en el hosting.
+
+Detalle, comprobaciones de WordPress y solución de problemas: [playbook, sección 8](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md#8-plantilla-replicar-este-flujo-en-tu-propio-dominio).
 
 ## Ruta del proyecto
 
@@ -34,11 +46,7 @@ npm start
 }
 ```
 
-Opcional para scripts de limpieza (host de tu sitio, sin `https://`):
-
-```env
-WP_SITE_HOST=your-site.com
-```
+Variables recomendadas están documentadas en [`.env.example`](.env.example). Mínimo para MCP: `WP_BASE_URL`, `WP_USERNAME`, `WP_APP_PASSWORD`. Para limpieza segura en **tu** dominio, añade `WP_SITE_HOST`.
 
 ## Herramientas disponibles
 
