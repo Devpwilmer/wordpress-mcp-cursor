@@ -64,6 +64,20 @@ El servidor habla por **stdio** (salida estándar), igual que cuando Cursor lo l
 | `delete_post`  | Borra o envía a la papelera: `id`, opcional `force` (boolean). |
 | `gsc_top_pages` | Top URLs desde Search Console: `start_date`, `end_date` (YYYY-MM-DD), opcional `row_limit`. Requiere `GSC_*`. |
 | `gsc_top_queries` | Top consultas: mismos campos; opcional `page` para filtrar por URL. Requiere `GSC_*`. |
+| `resolve_url` | Dada una URL del sitio, devuelve si es `post` o `page` y el `id` (por slug). La home hay que localizarla a mano. |
+| `get_post` / `get_page` | Lee una entrada o página por `id`; `context`: `edit` (HTML crudo) o `view`. |
+| `update_post` / `update_page` | Actualización parcial (PATCH): `title`, `content`, `excerpt`, `status`. Solo envía lo que cambies. |
+
+### Flujo sugerido: optimizar el top por keywords (GSC + WordPress)
+
+1. `gsc_top_pages` con `row_limit: 10` y fechas (ej. últimos 28 días).
+2. Para cada URL del ranking: `gsc_top_queries` con el mismo rango y `page` = esa URL (keywords reales de Google).
+3. `resolve_url` con la URL → obtienes `kind` e `id`.
+4. `get_post` o `get_page` según `kind`, con `context: edit`.
+5. Redactas mejoras (título, extracto, párrafos, uso natural de las queries) y aplicás con `update_post` o `update_page` **sin cambiar `status`** si no quieres despublicar nada (omití `status` o poné `publish`).
+6. Revisa en WordPress y purga caché si usas plugin/CDN.
+
+Si usas SEO plugin con meta campos fuera del REST estándar, puede hacer falta editar esos campos en el editor de WP o ampliar el MCP con meta registrada.
 
 ## WordPress
 

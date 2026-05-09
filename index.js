@@ -118,6 +118,41 @@ async function gscSearchAnalytics({
   return response.data;
 }
 
+function slugFromUrl(input) {
+  try {
+    const u = input.startsWith("http") ? new URL(input) : new URL(input, "https://placeholder.local/");
+    const segments = u.pathname.split("/").filter(Boolean);
+    return segments.length ? segments[segments.length - 1] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveUrlToPostOrPage(fullUrlOrPath) {
+  const slug = slugFromUrl(fullUrlOrPath);
+  if (!slug) {
+    throw new Error(
+      "No se pudo obtener slug desde la URL (¿es la home?). Usa get_post/get_page con el ID."
+    );
+  }
+
+  const posts = await wpFetch(
+    `/posts?slug=${encodeURIComponent(slug)}&_fields=id,slug,link,title,status,type`
+  );
+  if (Array.isArray(posts) && posts.length > 0) {
+    return { kind: "post", ...posts[0] };
+  }
+
+  const pages = await wpFetch(
+    `/pages?slug=${encodeURIComponent(slug)}&_fields=id,slug,link,title,status,type`
+  );
+  if (Array.isArray(pages) && pages.length > 0) {
+    return { kind: "page", ...pages[0] };
+  }
+
+  throw new Error(`No hay entrada ni página con slug "${slug}".`);
+}
+
 const server = new Server(
   { name: "wordpress-mcp", version: "1.0.0" },
   { capabilities: { tools: {} } }
@@ -159,6 +194,88 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             id: { type: "number" },
             force: { type: "boolean", default: false }
+          },
+          required: ["id"],
+          additionalProperties: false
+        }
+      },
+      {
+        name: "resolve_url",
+        description:
+          "Given a full URL or path, find matching WordPress post or page (by slug). Returns kind (post|page) and id for updates.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            url: { type: "string", description: "Full URL or path, e.g. https://site.com/post-slug/" }
+          },
+          required: ["url"],
+          additionalProperties: false
+        }
+      },
+      {
+        name: "get_post",
+        description: "Get a single post by ID (raw HTML content, excerpt, title, status)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            context: {
+              type: "string",
+              enum: ["edit", "view"],
+              default: "edit",
+              description: "edit returns raw content for saving back"
+            }
+          },
+          required: ["id"],
+          additionalProperties: false
+        }
+      },
+      {
+        name: "get_page",
+        description: "Get a single page by ID (same as get_post but for pages)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            context: {
+              type: "string",
+              enum: ["edit", "view"],
+              default: "edit",
+              description: "edit returns raw content for saving back"
+            }
+          },
+          required: ["id"],
+          additionalProperties: false
+        }
+      },
+      {
+        name: "update_post",
+        description:
+          "Partially update a post (PATCH). Only send fields you want to change. content is raw HTML.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            title: { type: "string" },
+            content: { type: "string" },
+            excerpt: { type: "string" },
+            status: { type: "string", enum: ["draft", "publish", "pending", "private"] }
+          },
+          required: ["id"],
+          additionalProperties: false
+        }
+      },
+      {
+        name: "update_page",
+        description: "Partially update a page (PATCH). Same fields as update_post.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            title: { type: "string" },
+            content: { type: "string" },
+            excerpt: { type: "string" },
+            status: { type: "string", enum: ["draft", "publish", "pending", "private"] }
           },
           required: ["id"],
           additionalProperties: false
@@ -232,6 +349,65 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     });
     return {
       content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+    };
+  }
+
+  if (name === "resolve_url") {
+    const resolved = await resolveUrlToPostOrPage(args.url);
+    return {
+      content: [{ type: "text", text: JSON.stringify(resolved, null, 2) }]
+    };
+  }
+
+  if (name === "get_post") {
+    const ctx = args.context === "view" ? "view" : "edit";
+    const post = await wpFetch(
+      `/posts/${args.id}?context=${ctx}&_fields=id,date,slug,status,link,title,content,excerpt,modified`
+    );
+    return {
+      content: [{ type: "text", text: JSON.stringify(post, null, 2) }]
+    };
+  }
+
+  if (name === "get_page") {
+    const ctx = args.context === "view" ? "view" : "edit";
+    const page = await wpFetch(
+      `/pages/${args.id}?context=${ctx}&_fields=id,date,slug,status,link,title,content,excerpt,modified`
+    );
+    return {
+      content: [{ type: "text", text: JSON.stringify(page, null, 2) }]
+    };
+  }
+
+  if (name === "update_post") {
+    const { id, ...rest } = args;
+    const body = {};
+    if (rest.title !== undefined) body.title = rest.title;
+    if (rest.content !== undefined) body.content = rest.content;
+    if (rest.excerpt !== undefined) body.excerpt = rest.excerpt;
+    if (rest.status !== undefined) body.status = rest.status;
+    const post = await wpFetch(`/posts/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    });
+    return {
+      content: [{ type: "text", text: JSON.stringify(post, null, 2) }]
+    };
+  }
+
+  if (name === "update_page") {
+    const { id, ...rest } = args;
+    const body = {};
+    if (rest.title !== undefined) body.title = rest.title;
+    if (rest.content !== undefined) body.content = rest.content;
+    if (rest.excerpt !== undefined) body.excerpt = rest.excerpt;
+    if (rest.status !== undefined) body.status = rest.status;
+    const page = await wpFetch(`/pages/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    });
+    return {
+      content: [{ type: "text", text: JSON.stringify(page, null, 2) }]
     };
   }
 
