@@ -40,5 +40,5 @@ Google Search Console setup:
 - For service account mode, share your Search Console property with the service account email as `Owner` or `Full user`.
 - For OAuth mode, use OAuth Playground to generate a refresh token with scope `https://www.googleapis.com/auth/webmasters.readonly`.
 
-Practical case study:
-- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` - end-to-end workflow to detect, map, and remove injected spam links from WordPress/Elementor pages using Cursor + MCP scripts.
+Caso práctico (español):
+- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — resumen del incidente real, qué se encontró y flujo paso a paso con scripts Cursor + MCP.

@@ -1,142 +1,168 @@
-# WordPress MCP + Cursor: Practical Spam Cleanup Playbook
+# WordPress MCP + Cursor: caso práctico — limpieza de enlaces spam
 
-This guide documents a real, practical workflow to detect, map, and remove injected spam links (casino/betting URLs) from a WordPress site, including Elementor-based pages.
+Guía en español que documenta un flujo real para detectar, mapear y eliminar enlaces inyectados (apuestas/casino) en WordPress, incluyendo páginas hechas con Elementor.
 
-## 1) Goal
+---
 
-Detect suspicious links in:
-- Public homepage HTML
-- WordPress posts/pages content via REST API
+## Resumen del caso (qué se encontró)
 
-Then remove those links safely and validate the site is clean.
+En un sitio de podología (Lima, Perú) aparecieron **enlaces externos no deseados** mezclados con el contenido legítimo, en concreto:
 
-## 2) Prerequisites
+- **Dónde:** en la **página de inicio** y en varias **landing por distrito** (por ejemplo Barranco, Chorrillos, Comas, Ate Vitarte, Ancón), a menudo **junto a listas** del tipo «Podólogo en …».
+- **Qué tipo de enlaces:** dominios de apuestas/casino (ej. `babu88-app.com`, `mostbet`, `pinup-casino`, `casino-my-empire`, y muchos similares).
+- **Técnica habitual:** un **`<div>` oculto** con estilos tipo `overflow:hidden`, `height:1px`, `position:absolute` y `left:-NNNNpx` (**cloaking**), que contenía un `<a href="…">` hacia esos sitios.
+- **Por qué costaba limpiarlo solo con el editor:**
+  - Mucho contenido venía de **Elementor**, guardado en la meta **`_elementor_data`** (JSON), no solo en el campo clásico del post.
+  - A veces el **HTML público** seguía mostrando spam mientras la **API REST** ya no reflejaba la misma cadena en meta, o al revés: había **divergencia** entre lo que ve el visitante y lo que devuelve `wp-json` (caché, regeneración de Elementor, o datos en base de datos).
+- **Resultado tras el playbook:** escaneo sin hallazgos en listas de sospechosos (`homepage_suspicious`, páginas y entradas vacías) y ausencia de cadenas conocidas en la home pública tras purgar/actualizar contenido y meta.
 
-- Node.js 18+ (tested on Node 22)
-- WordPress Application Password with edit permissions
-- `.env` configured (do not commit secrets):
+Este repositorio incluye scripts Node.js para **repetir** ese diagnóstico y la limpieza de forma automatizada donde la API lo permita.
+
+---
+
+## 1) Objetivo
+
+Detectar enlaces sospechosos en:
+
+- El **HTML público** de la portada.
+- El contenido de **entradas y páginas** vía **REST API** de WordPress.
+
+Eliminar esos enlaces de forma controlada y **volver a validar** hasta confirmar que el sitio está limpio.
+
+---
+
+## 2) Requisitos
+
+- Node.js 18+ (probado con Node 22).
+- **Contraseña de aplicación** de WordPress con permisos de edición.
+- Archivo `.env` (no subirlo a Git):
 
 ```env
-WP_BASE_URL=https://your-site.com
-WP_USERNAME=your-wp-user
-WP_APP_PASSWORD=your-app-password
+WP_BASE_URL=https://tu-sitio.com
+WP_USERNAME=tu-usuario-wp
+WP_APP_PASSWORD=tu-contraseña-de-aplicacion
 ```
 
-Install dependencies:
+Instalación:
 
 ```bash
 npm install
 npm install cheerio
 ```
 
-## 3) Scripts Used
+---
 
-- `scan-malicious-links.mjs`
-  - Scans homepage + posts/pages for suspicious external links.
-- `strip-spam-links-pages.mjs`
-  - Removes spam anchors from page content.
-- `elementor-strip-spam.mjs`
-  - Cleans spam patterns inside Elementor meta (`_elementor_data`).
-- `strip-rendered-to-post-content.mjs`
-  - Cleans based on rendered HTML and patches post content.
-- `detect-elementor-rest-divergence.mjs`
-  - Detects mismatch: public homepage has spam but REST meta looks clean.
+## 3) Scripts incluidos
 
-## 4) Step-by-Step Workflow
+| Script | Función |
+|--------|---------|
+| `scan-malicious-links.mjs` | Escanea la home + entradas/páginas y lista `href` externos sospechosos. |
+| `strip-spam-links-pages.mjs` | Quita anclas spam y bloques cloaking típicos del contenido de páginas. |
+| `elementor-strip-spam.mjs` | Limpia patrones spam dentro del JSON de Elementor (`_elementor_data`). |
+| `strip-rendered-to-post-content.mjs` | Limpia a partir del HTML **renderizado** y actualiza el contenido del post. |
+| `detect-elementor-rest-divergence.mjs` | Comprueba si la **home pública** tiene spam pero la meta vía REST **no** muestra las mismas cadenas. |
 
-### Step A: Baseline scan (map the problem)
+---
+
+## 4) Flujo paso a paso
+
+### A) Línea base (mapear el problema)
 
 ```bash
 node scan-malicious-links.mjs
 ```
 
-Review:
+Revisa en el JSON de salida:
+
 - `homepage_suspicious`
 - `posts_with_spam_links`
 - `pages_with_spam_links`
 
-This gives the initial map of infected URLs/pages.
-
-### Step B: First cleanup pass on page content
+### B) Primera pasada sobre el contenido de páginas
 
 ```bash
 node strip-spam-links-pages.mjs
 ```
 
-This removes known spam links and hidden cloaking blocks from page HTML.
+Elimina enlaces conocidos como spam y `div` de cloaking con el patrón habitual.
 
-### Step C: Clean Elementor meta data
+### C) Limpiar meta de Elementor
 
-If homepage or Elementor pages still show spam:
+Si la portada o páginas Elementor siguen mostrando spam:
 
 ```bash
 node elementor-strip-spam.mjs
 ```
 
-Why: Elementor often renders from `_elementor_data`, not only `post_content`.
+Motivo: Elementor suele pintar desde `_elementor_data`, no solo desde `post_content`.
 
-### Step D: Cleanup rendered HTML fallback
+### D) Respaldo: limpiar según HTML renderizado
 
 ```bash
 node strip-rendered-to-post-content.mjs
 ```
 
-This catches cases where rendered output still contains injected blocks.
+Útil cuando el **renderizado** aún incluye bloques inyectados que no coinciden con lo que esperas en `raw`.
 
-### Step E: Validate and confirm
+### E) Validar de nuevo
 
 ```bash
 node scan-malicious-links.mjs
 ```
 
-Optional direct homepage checks:
+Comprobación opcional en la home:
 
 ```bash
 node --input-type=module -e "import 'dotenv/config'; const BASE=(process.env.WP_BASE_URL||'').replace(/\/$/,''); const r=await fetch(BASE+'/?cb='+Date.now(), {headers:{'Cache-Control':'no-cache'}}); const t=await r.text(); console.log('babu88-app.com:', t.includes('babu88-app.com'));"
 ```
 
-Expected clean state:
+Estado limpio esperado:
+
 - `homepage_suspicious: []`
 - `posts_with_spam_links: []`
 - `pages_with_spam_links: []`
 
-## 5) If Spam Still Appears
+---
 
-Run:
+## 5) Si el spam sigue visible
 
 ```bash
 node detect-elementor-rest-divergence.mjs
 ```
 
-If homepage is infected but REST meta is clean, likely causes:
-- Page/CDN cache not purged
-- Different data source in DB/plugin than REST output
-- Runtime injection in `the_content` filters or compromised plugin/theme code
+Si la home está infectada pero la meta REST parece limpia, suele deberse a:
 
-Next actions:
-1. Purge all cache layers (plugin cache, server cache, CDN cache, object cache).
-2. Regenerate Elementor data/files.
-3. Search DB for known indicators (for example `babu88`, `casino-my-empire`).
-4. Audit plugins, `mu-plugins`, and theme custom code for malicious injections.
+- Caché de página, servidor o CDN no purgada.
+- Datos en base de datos distintos de lo que expone la REST en lectura.
+- Inyección en filtros de `the_content` o código/plugin comprometido.
 
-## 6) Security and Publishing Notes
+Pasos siguientes:
 
-- Never commit `.env`.
-- Never publish real WordPress credentials or GSC tokens.
-- Replace domain/user/password values with placeholders in docs.
-- Add/update `.gitignore` before pushing.
+1. Purgar todas las capas de caché (plugin, servidor, CDN, object cache).
+2. Regenerar datos/archivos de Elementor.
+3. Buscar en base de datos indicadores (`babu88`, `casino-my-empire`, etc.).
+4. Auditar plugins, `mu-plugins` y el tema.
 
-Recommended `.gitignore` entries:
+---
+
+## 6) Seguridad y publicación
+
+- No commitear `.env`.
+- No publicar credenciales reales de WordPress ni tokens de Search Console.
+- Usar placeholders en documentación.
+- Mantener `.gitignore` con al menos:
 
 ```gitignore
 .env
 node_modules/
 ```
 
-## 7) Suggested GitHub Repo Structure
+---
 
-- `README.md` - setup and MCP usage
-- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` - this practical incident guide
-- `*.mjs` scripts for scan/remediation/validation
+## 7) Estructura sugerida del repositorio
 
-This makes the repository useful as a reproducible incident response template for WordPress + Cursor MCP workflows.
+- `README.md` — configuración y uso del MCP.
+- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — este caso práctico (español).
+- Scripts `*.mjs` — escaneo, remediación y validación.
+
+Así el repo sirve como plantilla reproducible de respuesta ante incidentes con WordPress + Cursor + MCP.
