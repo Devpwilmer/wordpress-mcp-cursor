@@ -4,7 +4,23 @@ Guía en español para detectar, mapear y eliminar enlaces inyectados (típicame
 
 ---
 
-## Resumen del caso (qué se encontró)
+## Resumen del caso de ataque (incidente tipo hack / SEO spam)
+
+**Tipo de amenaza:** inyección de contenido malicioso orientada a **SEO negativo o spam de enlaces**. No implica necesariamente control total del servidor (shell), pero sí **alteración persistente** de páginas en WordPress.
+
+**Vector habitual (hipótesis de trabajo):** credenciales filtradas, plugin o tema desactualizado, acceso de un colaborador comprometido, o alojamiento compartido con otro sitio vulnerable. El atacante suele usar el **panel o la API** para insertar HTML en páginas ya publicadas.
+
+**Modus operandi:** enlaces hacia sitios de terceros (apuestas, afiliación, etc.) **camuflados** dentro del contenido real —a veces en listas o pies de bloque— y con técnicas de **ocultación visual** (por ejemplo `div` con posición fuera de pantalla o altura mínima) para que el enlace siga existiendo en el HTML que indexan los buscadores.
+
+**Impacto:** daño a la **reputación** del sitio, riesgo de **sanciones algorítmicas**, tiempo de respuesta del equipo y, si no se audita a fondo, **reincidencia** si queda backdoor o credenciales sin rotar.
+
+**Respuesta recomendada (alto nivel):** respaldo antes de cambios, inventario de páginas afectadas, limpieza de `post_content` y de meta de constructores (p. ej. Elementor), **purgado de caché**, rotación de contraseñas y contraseñas de aplicación, revisión de usuarios y plugins, y **validación** repetida del HTML público hasta que no queden patrones del incidente.
+
+**Qué aporta este repo:** un **MCP** que habla con WordPress por REST y **scripts** para escanear y limpiar de forma repetible; sirve para documentar el caso y compartir el método, no sustituye forense completo ni hardening del hosting.
+
+---
+
+## Hallazgos técnicos (qué se vio en el sitio)
 
 En un **sitio WordPress de un cliente** aparecieron **enlaces externos no deseados** mezclados con contenido legítimo:
 

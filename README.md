@@ -1,5 +1,7 @@
 # WordPress MCP for Cursor
 
+Servidor MCP que expone herramientas contra la **REST API de WordPress** (`list_posts`, `create_post`, `delete_post`). Incluye además un **caso práctico** para compartir ([playbook en español](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md)) sobre limpieza de contenido inyectado; los scripts de limpieza son opcionales y se ejecutan aparte con Node.
+
 ## Ruta del proyecto
 
 Clona este repositorio en la carpeta que prefieras. En la configuración de Cursor debes usar la **ruta absoluta** a `index.js` en tu máquina (sustituye por tu ruta real).
