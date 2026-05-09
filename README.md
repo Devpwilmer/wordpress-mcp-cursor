@@ -12,8 +12,8 @@ Servidor **MCP** (Model Context Protocol) que conecta **Cursor** con la **REST A
 ## Instalación
 
 ```bash
-git clone <url-del-repo>.git
-cd <carpeta-del-repo>
+git clone https://github.com/Devpwilmer/wordpress-mcp-cursor.git
+cd wordpress-mcp-cursor
 npm install
 cp .env.example .env
 ```
