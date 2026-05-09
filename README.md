@@ -48,12 +48,23 @@ WP_SITE_HOST=your-site.com
 
 ## Caso práctico (español)
 
-[`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico, **tabla de alcance del análisis y órdenes de magnitud** (páginas tocadas, elementos eliminados, iteraciones) y **flujo paso a paso** con scripts Cursor + MCP.
+Está pensado **no solo para perfiles muy técnicos**: sirve para **marketing, contenido, negocio y SEO** que necesiten entender *qué pasó*, *a qué escala* y *cómo se resolvió* sin entrar en código hasta que quieran.
 
-**Resumen conciso del caso de estudio**
+**Documento principal:** [`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md). Ahí encontrarás, en orden:
 
-- Se detectó una inyección de enlaces no deseados en páginas públicas de WordPress (tipo SEO spam).
-- El análisis mostró contenido malicioso mezclado con bloques legítimos y, en algunos casos, persistencia en datos de constructor visual.
-- Se retiraron **más de 2000 enlaces o referencias a URLs infectadas**, con **criterio conservador** porque el blog **ya tenía posiciones** en buscadores: lista blanca del sitio, solo eliminación de anclas/bloques cloaking identificados como spam y validación por fases.
-- Se aplicó limpieza por API (contenido + metadatos del constructor), validación iterativa y purga de caché.
-- Resultado final: sin indicadores del incidente en los escaneos de validación y con flujo documentado para replicar la respuesta.
+1. **Qué ocurrió** — explicación del ataque en lenguaje claro (sin nombrar dominios del caso).
+2. **Qué se vio en el sitio** — dónde aparecía el problema y por qué a veces no se veía en el editor.
+3. **Cuánto se analizó y corrigió** — tabla de alcance (qué partes del sitio se revisaron) y **órdenes de magnitud** (páginas tocadas, miles de enlaces maliciosos, pasadas de limpieza).
+4. **Cómo se hizo paso a paso** — checklist con scripts y Cursor + MCP para quien vaya a ejecutarlo.
+5. **Detalle técnico** — apartados para desarrolladores o SEO técnico (API, Elementor, caché).
+
+---
+
+### Resumen del caso (lenguaje sencillo)
+
+- Alguien **coló enlaces no deseados** (típicamente apuestas u otros sitios de terceros) dentro de páginas públicas de WordPress; es un patrón conocido de **manipulación de enlaces** para perjudicar o lucrar a costa del sitio.
+- Esos enlaces estaban **mezclados con el contenido bueno** del sitio; a veces **casi invisibles** para el visitante pero **presentes en el código** de la página (lo que ven Google y herramientas).
+- En muchas páginas el diseño estaba hecho con **Elementor** (maquetador): parte del “ensucio” vivía en datos internos del maquetador, no solo en el texto que ves al editar.
+- Se **eliminaron más de 2000 enlaces o apariciones de URLs maliciosas**, con **mucho cuidado** porque el blog **ya rankeaba**: no se tocó el contenido legítimo; solo se quitaron enlaces y bloques ocultos identificados como spam, y se **comprobó** el resultado **por fases**.
+- La limpieza se hizo **desde herramientas conectadas a WordPress** (contenido + datos del maquetador), se **volvió a escanear** todo hasta dejar de detectar problemas y se **limpió la caché** para que la web pública mostrara la versión sana.
+- **Cierre:** el sitio quedó **validado** (sin señales del incidente en los chequeos automáticos) y quedó **documentado el método** para repetirlo si hiciera falta.

@@ -2,6 +2,34 @@
 
 Guía en español para detectar, mapear y eliminar enlaces inyectados (típicamente apuestas u ofertas no deseadas) en WordPress, incluyendo páginas construidas con Elementor. **No incluye dominios reales:** adapta URLs y marcadores a tu propio incidente.
 
+## Para quién es esta guía
+
+- **Negocio / marketing / contenido:** entender qué fue el incidente, el riesgo para la marca y el SEO, y el orden de magnitud del trabajo sin leer código.
+- **SEO (perfil menos técnico):** seguir el relato, la tabla de alcance y el flujo; el glosario corto está en los apartados iniciales.
+- **SEO técnico / desarrollo:** mismos contenidos más adelante con detalle de API, Elementor, scripts y MCP.
+
+## En pocas palabras (qué pasó y cómo se cerró)
+
+1. En el sitio aparecieron **enlaces externos no deseados** mezclados con páginas normales (inicio y landings), a menudo **escondidos** en el código para que sigan existiendo ante buscadores.
+2. Parte del problema vivía en **Elementor** (datos del maquetador), no solo en el editor de texto clásico.
+3. Se revisó **toda la superficie relevante** (portada, entradas, páginas, y donde aplicara los datos del maquetador) y se corrigió en **varias rondas**, comprobando después de cada una.
+4. Se retiraron **más de 2000** apariciones de URLs/enlaces infectados, **sin arrasar el contenido bueno** porque el sitio **ya tenía posiciones** en Google: solo se eliminó lo identificado como spam y bloques “invisibles” típicos de este fraude.
+5. Al final, los **chequeos automáticos** dejaron de marcar problemas y se **purgó caché** para alinear lo que ve el usuario con lo guardado en WordPress.
+
+Lo que sigue baja al detalle: primero el relato del ataque, luego hallazgos, cifras y pasos concretos.
+
+### Glosario rápido (si no vienes del mundo técnico)
+
+| Término | Significado breve |
+|--------|---------------------|
+| **WordPress** | El sistema con el que está hecha la web (CMS). |
+| **Enlace / URL** | La dirección a la que lleva un clic; aquí, muchas eran de sitios maliciosos insertados sin permiso. |
+| **SEO spam** | Truco para colar enlaces en una web ajena y manipular buscadores o tráfico. |
+| **Elementor** | Maquetador visual: el “diseño” de muchas páginas vive en datos extra, no solo en el párrafo que editas. |
+| **API / REST** | Canal oficial para que programas lean o actualicen contenido en WordPress sin usar el ratón en el panel. |
+| **Caché** | Copia guardada de la página; si no se vacía, puedes seguir viendo la versión “vieja” aunque ya esté limpia por dentro. |
+| **MCP (en Cursor)** | Conexión para que el asistente use herramientas (en este repo, listar o editar posts en WordPress). |
+
 ---
 
 ## Resumen del caso de ataque (incidente tipo hack / SEO spam)
