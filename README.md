@@ -2,6 +2,8 @@
 
 Servidor **MCP** (Model Context Protocol) que conecta **Cursor** con la **REST API de WordPress**. Permite al asistente listar, crear y borrar entradas mediante herramientas estándar del protocolo.
 
+**Caso de estudio** (playbook + scripts de limpieza de inyección / SEO spam): [github.com/Devpwilmer/caso-estudio-wordpress-mcp-cursor](https://github.com/Devpwilmer/caso-estudio-wordpress-mcp-cursor)
+
 ## Requisitos
 
 - [Node.js](https://nodejs.org/) 18 o superior
