@@ -1,6 +1,6 @@
 /**
  * URLs que no deben tratarse como spam (origen del sitio y servicios habituales).
- * Define WP_SITE_HOST en .env con el host de tu WordPress (sin https://), p. ej. midominio.org
+ * Define WP_SITE_HOST en .env con el host de tu WordPress (sin https://).
  */
 export function isTrustedOriginHref(href) {
   if (!href || /^mailto:|^tel:|^#|^javascript:/i.test(href)) return true;
