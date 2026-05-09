@@ -54,5 +54,6 @@ WP_SITE_HOST=your-site.com
 
 - Se detectó una inyección de enlaces no deseados en páginas públicas de WordPress (tipo SEO spam).
 - El análisis mostró contenido malicioso mezclado con bloques legítimos y, en algunos casos, persistencia en datos de constructor visual.
+- Se retiraron **más de 2000 enlaces o referencias a URLs infectadas**, con **criterio conservador** porque el blog **ya tenía posiciones** en buscadores: lista blanca del sitio, solo eliminación de anclas/bloques cloaking identificados como spam y validación por fases.
 - Se aplicó limpieza por API (contenido + metadatos del constructor), validación iterativa y purga de caché.
 - Resultado final: sin indicadores del incidente en los escaneos de validación y con flujo documentado para replicar la respuesta.

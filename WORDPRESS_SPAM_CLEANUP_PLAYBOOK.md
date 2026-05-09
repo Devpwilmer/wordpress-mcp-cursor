@@ -54,8 +54,20 @@ Cifras y alcance **aproximados** del caso que originó este playbook (sin citar 
 
 **Iteraciones:** varias pasadas de `scan-malicious-links.mjs` (antes y después de limpiar), más ejecuciones de scripts de remediación y comprobaciones puntuales con `fetch` en Node.
 
+### Limpieza a escala y cuidado con el SEO existente
+
+En el incidente de referencia se llegó a **eliminar más de 2000 enlaces o referencias a URLs infectadas** (apariciones de `href` maliciosos y bloques asociados) repartidas en el sitio. El blog **ya tenía páginas posicionadas**; por eso el criterio fue **quirúrgico**, no un borrado masivo a ciegas:
+
+- **Lista blanca del dominio propio** (`WP_SITE_HOST` / enlaces internos legítimos) para no tratar como spam las URLs del propio sitio.
+- **Quitar solo** anclas y `div` de cloaking que coincidían con heurísticas de spam, **manteniendo** texto y estructura editorial útiles para SEO.
+- **Pasadas acotadas** (contenido → Elementor → HTML renderizado) con **reescaneo** tras cada fase para no dejar el sitio a medias.
+- **Purgado de caché** al final para alinear HTML público con lo guardado.
+
+Así se redujo el riesgo de **perder rankings** por cambios innecesarios en contenido que ya rankeaba.
+
 ### Qué se encontró y en qué cantidad (orden de magnitud)
 
+- **Escala global del incidente:** **>2000** instancias de URLs/enlaces infectados abordadas en conjunto (incluye repeticiones en varias plantillas y landings), además de lo detallado abajo por pasada.
 - **Primer escaneo:** la portada acumuló **muchas decenas** de `href` externos; una parte eran **sospechosos** según heurística (apuestas/casino/afiliación); el resto, enlaces legítimos (redes, fuentes, etc.) que el informe también lista como “externos”.
 - **Contenido REST:** varias **páginas** (landings de ubicación/servicio + **inicio**) aparecieron en `pages_with_spam_links` con múltiples URLs maliciosas cada una en el HTML renderizado del post.
 - **Limpieza en contenido de página:** en una pasada típica sobre el listado completo de páginas, del orden de **~10 páginas** recibieron parches; en la **portada** el script contó del orden de **~25–35** elementos quitados (anclas spam + `div` de cloaking) en la pasada más intensa.
