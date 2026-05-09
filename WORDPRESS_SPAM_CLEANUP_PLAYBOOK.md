@@ -38,6 +38,39 @@ Las heurísticas de detección en código incluyen patrones típicos de spam; si
 
 ---
 
+## Detalle del análisis y volumen hallado (incidente de referencia)
+
+Cifras y alcance **aproximados** del caso que originó este playbook (sin citar dominios ni URLs del cliente). Sirven como orden de magnitud para otros equipos.
+
+### Qué se analizó (superficie)
+
+| Ámbito | Método | Cobertura |
+|--------|--------|-----------|
+| Portada | `GET` del HTML público + extracción de `href` | Un documento completo por ejecución; se usó *cache-busting* (`?cb=…`) en validaciones finales. |
+| Entradas | REST `GET /wp-json/wp/v2/posts` paginado (`per_page=100`) | Todas las entradas accesibles con la app password (incluye estados que el script solicite, p. ej. publicadas y borrador). |
+| Páginas | REST `GET /wp-json/wp/v2/pages` paginado | Todas las páginas del listado (típicamente decenas en sitios medianos). |
+| Elementor | Lectura de `meta._elementor_data` vía REST (`context=edit`) | Solo páginas cuyo JSON contenía patrones de spam configurados en el script. |
+| Divergencia | Comparación HTML público vs. meta / `raw` | Portada y, con scripts auxiliares, página estática de inicio vía `page_on_front`. |
+
+**Iteraciones:** varias pasadas de `scan-malicious-links.mjs` (antes y después de limpiar), más ejecuciones de scripts de remediación y comprobaciones puntuales con `fetch` en Node.
+
+### Qué se encontró y en qué cantidad (orden de magnitud)
+
+- **Primer escaneo:** la portada acumuló **muchas decenas** de `href` externos; una parte eran **sospechosos** según heurística (apuestas/casino/afiliación); el resto, enlaces legítimos (redes, fuentes, etc.) que el informe también lista como “externos”.
+- **Contenido REST:** varias **páginas** (landings de ubicación/servicio + **inicio**) aparecieron en `pages_with_spam_links` con múltiples URLs maliciosas cada una en el HTML renderizado del post.
+- **Limpieza en contenido de página:** en una pasada típica sobre el listado completo de páginas, del orden de **~10 páginas** recibieron parches; en la **portada** el script contó del orden de **~25–35** elementos quitados (anclas spam + `div` de cloaking) en la pasada más intensa.
+- **Elementor (`_elementor_data`):** del orden de **~9 páginas** tuvieron JSON reescrito; en las más afectadas, **decenas** de bloques de texto/HTML dentro del JSON fueron saneados por pasada.
+- **HTML renderizado vs. `post_content` guardado:** otra pasada tocó del orden de **~8 páginas** donde el spam seguía visible en `content.rendered` pese a que el `raw` ya no mostraba las mismas cadenas (síntoma de constructor + caché o doble fuente de verdad).
+- **Cierre:** escaneo final con **`homepage_suspicious` vacío**, **`posts_with_spam_links` y `pages_with_spam_links` vacíos**, y pruebas directas sobre el HTML de la portada sin subcadenas de validación del incidente.
+
+### Lo que este análisis no cubre por sí solo
+
+- Menús, widgets, pie/cabecera del tema, ni archivos PHP/tema hackeados “a pelo”.
+- Búsqueda en base de datos SQL ni en logs del servidor (recomendable en incidentes persistentes).
+- Tiempos: un escaneo completo puede llevar **desde decenas de segundos hasta varios minutos** según número de posts, latencia y límites del hosting.
+
+---
+
 ## 1) Objetivo
 
 - Detectar enlaces sospechosos en el **HTML público** de la portada y en **entradas/páginas** vía REST.

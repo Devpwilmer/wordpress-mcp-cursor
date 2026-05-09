@@ -48,7 +48,7 @@ WP_SITE_HOST=your-site.com
 
 ## Caso práctico (español)
 
-[`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico y **flujo paso a paso** con scripts Cursor + MCP.
+[`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico, **tabla de alcance del análisis y órdenes de magnitud** (páginas tocadas, elementos eliminados, iteraciones) y **flujo paso a paso** con scripts Cursor + MCP.
 
 **Resumen conciso del caso de estudio**
 
