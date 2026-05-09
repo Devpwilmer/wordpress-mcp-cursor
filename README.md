@@ -2,6 +2,8 @@
 
 Servidor MCP que expone herramientas contra la **REST API de WordPress** (`list_posts`, `create_post`, `delete_post`). Incluye además un **caso de estudio reutilizable** ([playbook en español](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md)) sobre limpieza de contenido inyectado; los scripts de limpieza son opcionales y se ejecutan aparte con Node.
 
+**¿Primera vez?** Abre **[QUICKSTART.md](QUICKSTART.md)** (una página: instalación, `.env`, orden de comandos, MCP).
+
 Cualquiera que clone el repo puede **aplicar el mismo método a su propio dominio**: configuración mínima en `.env`, escaneo sin escribir nada, y luego limpieza por fases con validación (ver [§8 al final del playbook](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md#8-plantilla-replicar-este-flujo-en-tu-propio-dominio)).
 
 ## Replicar en tu dominio (resumen)

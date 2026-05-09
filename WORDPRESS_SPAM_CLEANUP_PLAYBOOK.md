@@ -250,6 +250,7 @@ node_modules/
 ## 7) Estructura sugerida del repositorio
 
 - `README.md` — MCP, resumen del caso y cómo replicar en otro dominio.
+- `QUICKSTART.md` — **una página**: instalación, tabla de comandos, enlaces al resto.
 - `.env.example` — plantilla de variables (copiar a `.env`, no subir `.env`).
 - `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — caso de estudio + flujo detallado.
 - Scripts `*.mjs` — escaneo, remediación y validación.
