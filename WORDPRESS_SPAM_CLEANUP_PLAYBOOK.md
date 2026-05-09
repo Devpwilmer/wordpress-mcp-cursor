@@ -4,12 +4,6 @@
 
 Guía en español para detectar, mapear y eliminar enlaces inyectados (típicamente apuestas u ofertas no deseadas) en WordPress, incluyendo páginas construidas con Elementor. **No incluye dominios reales del caso original:** tú pones **tu** URL y credenciales en `.env` (ver `.env.example`).
 
-## Para quién es esta guía
-
-- **Negocio / marketing / contenido:** entender qué fue el incidente, el riesgo para la marca y el SEO, y el orden de magnitud del trabajo sin leer código.
-- **SEO (perfil menos técnico):** seguir el relato, la tabla de alcance y el flujo; el glosario corto está en los apartados iniciales.
-- **SEO técnico / desarrollo:** mismos contenidos más adelante con detalle de API, Elementor, scripts y MCP.
-
 ## En pocas palabras (qué pasó y cómo se cerró)
 
 1. En el sitio aparecieron **enlaces externos no deseados** mezclados con páginas normales (inicio y landings), a menudo **escondidos** en el código para que sigan existiendo ante buscadores.
@@ -20,7 +14,7 @@ Guía en español para detectar, mapear y eliminar enlaces inyectados (típicame
 
 Lo que sigue baja al detalle: primero el relato del ataque, luego hallazgos, cifras y pasos concretos.
 
-### Glosario rápido (si no vienes del mundo técnico)
+### Glosario rápido
 
 | Término | Significado breve |
 |--------|---------------------|
