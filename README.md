@@ -48,4 +48,11 @@ WP_SITE_HOST=your-site.com
 
 ## Caso práctico (español)
 
-- [`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico y **flujo paso a paso** con scripts Cursor + MCP.
+[`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico y **flujo paso a paso** con scripts Cursor + MCP.
+
+**Resumen conciso del caso de estudio**
+
+- Se detectó una inyección de enlaces no deseados en páginas públicas de WordPress (tipo SEO spam).
+- El análisis mostró contenido malicioso mezclado con bloques legítimos y, en algunos casos, persistencia en datos de constructor visual.
+- Se aplicó limpieza por API (contenido + metadatos del constructor), validación iterativa y purga de caché.
+- Resultado final: sin indicadores del incidente en los escaneos de validación y con flujo documentado para replicar la respuesta.
