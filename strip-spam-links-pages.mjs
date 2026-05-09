@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { load } from "cheerio";
+import { isTrustedOriginHref } from "./site-allowlist.mjs";
 
 const BASE = (process.env.WP_BASE_URL || "").replace(/\/$/, "");
 const auth =
@@ -11,11 +12,8 @@ const auth =
 /** Links to strip: unwrap <a> and keep inner HTML/text */
 function isSpamHref(href) {
   if (!href || /^mailto:|^tel:|^#|^javascript:/i.test(href)) return false;
+  if (isTrustedOriginHref(href)) return false;
   const h = href.toLowerCase();
-  if (h.includes("mipodologoperu.com")) return false;
-  if (h.includes("wa.me")) return false;
-  if (h.includes("fonts.googleapis.com")) return false;
-  if (h.includes("gmpg.org")) return false;
 
   return (
     /babu88|mostbet|betify|pokies|pinup-casino|goodman-casino|gratogana|locowin|winunique|princeali|thepokies|casino-midas|malinacasino|casinofrumzi|casino-tropica|casino-spin-mama|casinos-gratogana|bizzocasino|hermes-casino|alexandercasino|fr-alexander|fr-betify|casinoextra|casinoslocowin|casinotropica|interacasino|gtamodding\.fr|slides\.com\/.*paysafecard|mycandylove\.com\/s2\/profile\/casino|bandcamp\.com\/album\/.*endorphina|topacio-cl|spacefortuna|king-chance\.fr|meulink\.fit|giveawayoftheday\.com\/forums|pixabay\.com\/users\/54589909|^https?:\/\/test\.com\/|theearlyhour\.com|localguidesconnect\.com|marmiton\.org\/forum|mecabricks\.com\/en\/forum|casino-my-empire|casinoextra-france|casinowinunique|gratogana-casino|pinup-casino-ni|princealicasino|goodman-casino\.de|hermes-casino\.net|only.?spins|spin.?monkey|my.?empire|locowin|winunique|tropica|frumzi|malina|midas\.net|midas\.app/i.test(

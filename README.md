@@ -1,19 +1,27 @@
-WordPress MCP for Cursor
+# WordPress MCP for Cursor
 
-Project path:
-- `C:/Users/Usuario/Documents/MCP AQUI`
+## Ruta del proyecto
 
-Run locally:
-- `npm start`
+Clona este repositorio en la carpeta que prefieras. En la configuración de Cursor debes usar la **ruta absoluta** a `index.js` en tu máquina (sustituye por tu ruta real).
 
-Cursor MCP config snippet:
+Ejemplo genérico:
+
+`/ruta/donde/clonaste/este-repositorio`
+
+## Ejecución local
+
+```bash
+npm start
+```
+
+## Fragmento de configuración MCP en Cursor
 
 ```json
 {
   "mcpServers": {
     "wordpress": {
       "command": "node",
-      "args": ["C:/Users/Usuario/Documents/MCP AQUI/index.js"],
+      "args": ["/ruta/donde/clonaste/este-repositorio/index.js"],
       "env": {
         "WP_BASE_URL": "https://your-site.com",
         "WP_USERNAME": "your-wp-user",
@@ -24,21 +32,30 @@ Cursor MCP config snippet:
 }
 ```
 
-Available tools:
-- `list_posts` (optional `per_page`)
-- `create_post` (`title`, `content`, optional `status`)
-- `delete_post` (`id`, optional `force`)
-- `gsc_top_pages` (`start_date`, `end_date`, optional `row_limit`)
-- `gsc_top_queries` (`start_date`, `end_date`, optional `row_limit`, optional `page`)
+Opcional para scripts de limpieza (host de tu sitio, sin `https://`):
 
-Google Search Console setup:
-- Add to `.env`:
-  - `GSC_SITE_URL=sc-domain:chancayhoy.com` (or your full property URL)
-  - Option A (service account): `GSC_SERVICE_ACCOUNT_JSON=<one-line JSON>`
-  - Option B (OAuth user): `GSC_OAUTH_CLIENT_ID`, `GSC_OAUTH_CLIENT_SECRET`, `GSC_OAUTH_REFRESH_TOKEN`
-- Create a Google Cloud service account with Search Console API enabled, or create OAuth credentials.
-- For service account mode, share your Search Console property with the service account email as `Owner` or `Full user`.
-- For OAuth mode, use OAuth Playground to generate a refresh token with scope `https://www.googleapis.com/auth/webmasters.readonly`.
+```env
+WP_SITE_HOST=your-site.com
+```
 
-Caso práctico (español):
-- `WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md` — resumen del incidente real, qué se encontró y flujo paso a paso con scripts Cursor + MCP.
+## Herramientas disponibles
+
+- `list_posts` (opcional `per_page`)
+- `create_post` (`title`, `content`, opcional `status`)
+- `delete_post` (`id`, opcional `force`)
+- `gsc_top_pages` (`start_date`, `end_date`, opcional `row_limit`)
+- `gsc_top_queries` (`start_date`, `end_date`, opcional `row_limit`, opcional `page`)
+
+## Google Search Console
+
+Añade en `.env`:
+
+- `GSC_SITE_URL=sc-domain:example.com` (o la URL completa de la propiedad en Search Console)
+- Opción A (cuenta de servicio): `GSC_SERVICE_ACCOUNT_JSON=<JSON en una línea>`
+- Opción B (OAuth): `GSC_OAUTH_CLIENT_ID`, `GSC_OAUTH_CLIENT_SECRET`, `GSC_OAUTH_REFRESH_TOKEN`
+
+Crea en Google Cloud una cuenta de servicio con la API de Search Console habilitada, u OAuth según el modo que uses. En modo servicio, comparte la propiedad de Search Console con el email de la cuenta de servicio. En modo OAuth, usa un refresh token con alcance `https://www.googleapis.com/auth/webmasters.readonly`.
+
+## Caso práctico (español)
+
+- [`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md) — resumen del incidente (sin dominios concretos), qué se encontró a nivel técnico y **flujo paso a paso** con scripts Cursor + MCP.
