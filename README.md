@@ -1,76 +1,72 @@
 # WordPress MCP for Cursor
 
-Servidor MCP que expone herramientas contra la **REST API de WordPress** (`list_posts`, `create_post`, `delete_post`). Incluye además un **caso de estudio reutilizable** ([playbook en español](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md)) sobre limpieza de contenido inyectado; los scripts de limpieza son opcionales y se ejecutan aparte con Node.
+Servidor **MCP** (Model Context Protocol) que conecta **Cursor** con la **REST API de WordPress**. Permite al asistente listar, crear y borrar entradas mediante herramientas estándar del protocolo.
 
-**¿Primera vez?** Abre **[QUICKSTART.md](QUICKSTART.md)** (una página: instalación, `.env`, orden de comandos, MCP).
+## Requisitos
 
-Cualquiera que clone el repo puede **aplicar el mismo método a su propio dominio**: configuración mínima en `.env`, escaneo sin escribir nada, y luego limpieza por fases con validación (ver [§8 al final del playbook](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md#8-plantilla-replicar-este-flujo-en-tu-propio-dominio)).
+- [Node.js](https://nodejs.org/) 18 o superior
+- Un sitio **WordPress** con la REST API accesible
+- Usuario con permisos sobre entradas
+- **Contraseña de aplicación**: en WordPress, *Usuarios → Tu perfil → Contraseñas de aplicación*
 
-## Replicar en tu dominio (resumen)
-
-1. Clona el repositorio e instala: `npm install` y, para los scripts, `npm install cheerio`.
-2. Copia `.env.example` a `.env` y completa `WP_BASE_URL`, `WP_USERNAME`, `WP_APP_PASSWORD` (contraseña de aplicación desde el perfil de WordPress).
-3. Añade `WP_SITE_HOST` con el host de **tu** web (sin `https://`) para que la limpieza no confunda tus enlaces internos con spam.
-4. Haz **copia de seguridad** del sitio antes de ejecutar scripts que modifican páginas.
-5. Ejecuta en orden: `node scan-malicious-links.mjs` → revisa el informe → scripts de limpieza del playbook → vuelve a escanear → purga caché en el hosting.
-
-Detalle, comprobaciones de WordPress y solución de problemas: [playbook, sección 8](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md#8-plantilla-replicar-este-flujo-en-tu-propio-dominio).
-
-## Ruta del proyecto
-
-Clona este repositorio en la carpeta que prefieras. En la configuración de Cursor debes usar la **ruta absoluta** a `index.js` en tu máquina (sustituye por tu ruta real).
-
-Ejemplo genérico:
-
-`/ruta/donde/clonaste/este-repositorio`
-
-## Ejecución local
+## Instalación
 
 ```bash
-npm start
+git clone <url-del-repo>.git
+cd <carpeta-del-repo>
+npm install
+cp .env.example .env
 ```
 
-## Fragmento de configuración MCP en Cursor
+Edita `.env` con la URL de tu sitio (sin barra final), usuario y contraseña de aplicación.
+
+## Uso en Cursor
+
+1. Abre la configuración de **MCP** en Cursor.
+2. Añade un servidor que ejecute este proyecto con **Node** y las variables de entorno (o que cargue un `.env` si tu entorno lo permite).
+
+Ejemplo de fragmento (sustituye la ruta por la **absoluta** a `index.js` en tu máquina):
 
 ```json
 {
   "mcpServers": {
     "wordpress": {
       "command": "node",
-      "args": ["/ruta/donde/clonaste/este-repositorio/index.js"],
+      "args": ["/ruta/absoluta/al/clon/index.js"],
       "env": {
-        "WP_BASE_URL": "https://your-site.com",
-        "WP_USERNAME": "your-wp-user",
-        "WP_APP_PASSWORD": "your-app-password"
+        "WP_BASE_URL": "https://tu-sitio.com",
+        "WP_USERNAME": "tu_usuario",
+        "WP_APP_PASSWORD": "tu-contraseña-de-aplicacion"
       }
     }
   }
 }
 ```
 
-Variables recomendadas están documentadas en [`.env.example`](.env.example). Mínimo para MCP: `WP_BASE_URL`, `WP_USERNAME`, `WP_APP_PASSWORD`. Para limpieza segura en **tu** dominio, añade `WP_SITE_HOST`.
+Si Cursor arranca el proceso sin leer `.env`, define las tres variables en `env` como arriba.
 
-## Herramientas disponibles
+## Ejecución manual (pruebas)
 
-- `list_posts` (opcional `per_page`)
-- `create_post` (`title`, `content`, opcional `status`)
-- `delete_post` (`id`, opcional `force`)
+```bash
+npm start
+```
 
-## Caso práctico (español)
+El servidor habla por **stdio** (salida estándar), igual que cuando Cursor lo lanza.
 
-**Documento principal:** [`WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md`](WORDPRESS_SPAM_CLEANUP_PLAYBOOK.md). Ahí encontrarás, en orden:
+## Herramientas expuestas
 
-1. **Qué ocurrió** — explicación del ataque en lenguaje claro (sin nombrar dominios del caso).
-2. **Qué se vio en el sitio** — dónde aparecía el problema y por qué a veces no se veía en el editor.
-3. **Cuánto se analizó y corrigió** — tabla de alcance (qué partes del sitio se revisaron) y órdenes de magnitud (páginas tocadas, miles de enlaces maliciosos, pasadas de limpieza).
-4. **Cómo se hizo paso a paso** — checklist con scripts y Cursor + MCP para quien vaya a ejecutarlo.
-5. **Detalle técnico** — apartados para desarrolladores o SEO técnico (API, Elementor, caché).
+| Herramienta     | Descripción |
+|----------------|-------------|
+| `list_posts`   | Lista entradas recientes. Opcional: `per_page` (número). |
+| `create_post`  | Crea una entrada: `title`, `content`, opcional `status` (`draft` o `publish`). |
+| `delete_post`  | Borra o envía a la papelera: `id`, opcional `force` (boolean). |
 
-### Resumen del caso (lenguaje sencillo)
+## WordPress
 
-- Alguien coló enlaces no deseados (típicamente apuestas u otros sitios de terceros) dentro de páginas públicas de WordPress; es un patrón conocido de manipulación de enlaces para perjudicar o lucrar a costa del sitio.
-- Esos enlaces estaban mezclados con el contenido bueno del sitio; a veces casi invisibles para el visitante pero presentes en el código de la página (lo que ven Google y herramientas).
-- En muchas páginas el diseño estaba hecho con Elementor (maquetador): parte del “ensucio” vivía en datos internos del maquetador, no solo en el texto que ves al editar.
-- Se eliminaron más de 2000 enlaces o apariciones de URLs maliciosas, con mucho cuidado porque el blog ya rankeaba: no se tocó el contenido legítimo; solo se quitaron enlaces y bloques ocultos identificados como spam, y se comprobó el resultado por fases.
-- La limpieza se hizo desde herramientas conectadas a WordPress (contenido + datos del maquetador), se volvió a escanear todo hasta dejar de detectar problemas y se limpió la caché para que la web pública mostrara la versión sana.
-- Cierre: el sitio quedó validado (sin señales del incidente en los chequeos automáticos) y quedó documentado el método para repetirlo si hiciera falta.
+Las llamadas van a `WP_BASE_URL/wp-json/wp/v2/` con autenticación **Basic** (usuario + contraseña de aplicación). Asegúrate de que no haya plugins o reglas que bloqueen la REST API para tu usuario.
+
+## Estructura del repositorio
+
+- `index.js` — implementación del servidor MCP
+- `package.json` — dependencias y script `start`
+- `.env.example` — plantilla de variables (copiar a `.env`)
